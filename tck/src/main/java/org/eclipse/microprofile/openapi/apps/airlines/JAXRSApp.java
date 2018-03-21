@@ -96,36 +96,44 @@ import org.eclipse.microprofile.openapi.apps.airlines.resources.bookings.Booking
                                 content = @Content(mediaType = "application/json", schema = @Schema(type = SchemaType.ARRAY, 
                                 implementation = Airline.class))),
                         @APIResponse(name = "FoundBookings", responseCode = "200", description = "Bookings retrieved", 
-                                content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = Booking.class))) }, 
+                                content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = Booking.class))),
+                        @APIResponse(name = "MyFoundBookingsRef", ref="FoundBookings")}, 
                 parameters = {
                         @Parameter(name = "departureDate", in = ParameterIn.QUERY, required = true, description = "Customer departure date", 
                                 schema = @Schema(implementation = String.class)),
                         @Parameter(name = "username", in = ParameterIn.QUERY, description = "The name that needs to be deleted", 
-                        schema = @Schema(type = SchemaType.STRING), required = true) }, 
+                        schema = @Schema(type = SchemaType.STRING), required = true),
+                        @Parameter(name = "MydepartureDateRef", ref="departureDate")}, 
                 examples = {
                         @ExampleObject(name = "review", summary = "External review example", 
                                 description = "This example exemplifies the content on our site.",
                                 externalValue = "http://foo.bar/examples/review-example.json"),
                         @ExampleObject(name = "user", summary = "External user example", 
-                                externalValue = "http://foo.bar/examples/user-example.json") }, 
+                                externalValue = "http://foo.bar/examples/user-example.json"),
+                        @ExampleObject(name="MyReviewRef", ref="review")}, 
                 requestBodies = {
                         @RequestBody(name = "review", content = @Content(mediaType = "application/json", 
-                                schema = @Schema(implementation = Review.class)), required = true, description = "example review to add") }, 
+                                schema = @Schema(implementation = Review.class)), required = true, description = "example review to add"),
+                        @RequestBody(name="MyreviewRef", ref = "#/components/requestBodies/review")}, 
                 headers = {
                         @Header(name = "Max-Rate", description = "Maximum rate", schema = @Schema(type = SchemaType.INTEGER), 
                                 required = true, allowEmptyValue = true, deprecated = true),
                         @Header(name = "Request-Limit", description = "The number of allowed requests in the current period", 
-                                schema = @Schema(type = SchemaType.INTEGER)) }, 
+                                schema = @Schema(type = SchemaType.INTEGER)) ,
+                        @Header(name="MyRefHeader", ref = "Max-Rate") }, 
                 securitySchemes = {
                         @SecurityScheme(securitySchemeName = "httpTestScheme", description = "user security scheme", 
-                                type = SecuritySchemeType.HTTP, scheme = "testScheme") }, 
+                                type = SecuritySchemeType.HTTP, scheme = "testScheme"),
+                        @SecurityScheme(securitySchemeName="httpTestSchemeRef", ref = "httpTestScheme")}, 
                 links = {
                         @Link(name = "UserName", description = "The username corresponding to provided user id", operationId = "getUserByName", 
-                                parameters = @LinkParameter(name = "userId", expression = "$request.path.id")) }, 
+                                parameters = @LinkParameter(name = "userId", expression = "$request.path.id")),
+                        @Link(name="MyUserNameRef", ref = "UserName")}, 
                 callbacks = {
                         @Callback(name = "GetBookings", callbackUrlExpression = "http://localhost:9080/airlines/bookings", 
-                                operations = @CallbackOperation(summary = "Retrieve all bookings for current user", 
-                                responses = {@APIResponse(ref = "FoundBookings") })) 
+                                operations = @CallbackOperation(summary = "Retrieve all bookings for current user", method = "get",
+                                responses = {@APIResponse(ref = "FoundBookings") })),
+                        @Callback(name="MyGetBookingsRef", ref = "#/components/callbacks/GetBookings")
                         }))
 @SecurityScheme(
     securitySchemeName = "airlinesRatingApp_auth",

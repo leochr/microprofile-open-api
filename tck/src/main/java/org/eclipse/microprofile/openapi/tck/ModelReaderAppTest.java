@@ -43,7 +43,6 @@ public class ModelReaderAppTest extends AppTestBase {
     @Deployment(name = "airlinesModelReader")
     public static WebArchive createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "airlinesReader.war")
-                .addPackages(true, "org.eclipse.microprofile.openapi.apps.airlines")
                 .addPackages(true, "org.eclipse.microprofile.openapi.reader")
                 .addAsManifestResource("microprofile-reader.properties", "microprofile-config.properties");
     }
@@ -127,8 +126,8 @@ public class ModelReaderAppTest extends AppTestBase {
     @Test(dataProvider = "formatProvider")
     public void testOperationAvailabilityResource(String type) {
         ValidatableResponse vr = callEndpoint(type);
-        vr.body("paths.'/availability'.get.summary", equalTo("Retrieve all available flights"));
-        vr.body("paths.'/availability'.get.operationId", equalTo("getFlights"));
+        vr.body("paths.'/modelReader/availability'.get.summary", equalTo("TEST SUMMARY"));
+        vr.body("paths.'/modelReader/availability'.get.operationId", equalTo("getTestFlights"));
     }
 
     @RunAsClient
@@ -148,20 +147,22 @@ public class ModelReaderAppTest extends AppTestBase {
     public void testAPIResponse(String type) {
         ValidatableResponse vr = callEndpoint(type);
         // @APIResponse at method level
-        vr.body("paths.'/availability'.get.responses", aMapWithSize(2));
-        vr.body("paths.'/availability'.get.responses.'200'.description", equalTo("successful operation"));
-        vr.body("paths.'/availability'.get.responses.'404'.description", equalTo("No available flights found"));
+        vr.body("paths.'/modelReader/availability'.get.responses", aMapWithSize(2));
+        vr.body("paths.'/modelReader/availability'.get.responses.'200'.description", equalTo("successful operation"));
+        vr.body("paths.'/modelReader/availability'.get.responses.'404'.description", equalTo("No available flights found"));
     }
 
-    private void testAvailabilityGetParamater(ValidatableResponse vr) {
-        String availabilityParameters = "paths.'/availability'.get.parameters";
+    @RunAsClient
+    @Test(dataProvider = "formatProvider")
+    public void testParameter(String type) {
+        ValidatableResponse vr = callEndpoint(type);
+        String availabilityParameters = "paths.'/modelReader/availability'.get.parameters";
 
         vr.body(availabilityParameters, hasSize(6));
         vr.body(availabilityParameters + ".findAll { it }.name",
-                hasItems("departureDate", "airportFrom", "returningDate", "airportTo", "numberOfAdults", "numberOfChildren"));
+                hasItems("airportFrom", "returningDate", "airportTo", "numberOfAdults", "numberOfChildren"));
 
         List<String[]> list = new ArrayList<String[]>();
-        list.add(new String[] { "departureDate", "Customer departure date" });
         list.add(new String[] { "airportFrom", "Airport the customer departs from" });
         list.add(new String[] { "returningDate", "Customer return date" });
         list.add(new String[] { "airportTo", "Airport the customer returns to" });
@@ -180,6 +181,8 @@ public class ModelReaderAppTest extends AppTestBase {
 
         vr.body(availabilityParameters + ".findAll { it.name == 'numberOfAdults' }.schema.minimum", both(hasSize(1)).and(contains(0)));
         vr.body(availabilityParameters + ".findAll { it.name == 'numberOfChildren' }.schema.minimum", both(hasSize(1)).and(contains(0)));
+        
+        vr.body(availabilityParameters + ".findAll { it.$ref == '#/components/parameters/departureDate'}", hasSize(1));
     }
 
     @RunAsClient
@@ -187,10 +190,9 @@ public class ModelReaderAppTest extends AppTestBase {
     public void testSecurityRequirement(String type) {
         ValidatableResponse vr = callEndpoint(type);
 
-        vr.body("paths.'/bookings'.post.security.bookingSecurityScheme[0][0]", equalTo("write:bookings"));
-        vr.body("paths.'/bookings'.post.security.bookingSecurityScheme[0][1]", equalTo("read:bookings"));
-        vr.body("paths.'/reviews'.post.security.bookingSecurityScheme", hasSize(1));
-        vr.body("paths.'/bookings'.post.security.bookingSecurityScheme[0]", hasSize(2));
+        vr.body("paths.'/modelReader/bookings'.post.security.bookingSecurityScheme[0][0]", equalTo("write:bookings"));
+        vr.body("paths.'/modelReader/bookings'.post.security.bookingSecurityScheme[0][1]", equalTo("read:bookings"));
+        vr.body("paths.'/modelReader/bookings'.post.security.bookingSecurityScheme[0]", hasSize(2));
     }
 
     @RunAsClient
@@ -255,7 +257,7 @@ public class ModelReaderAppTest extends AppTestBase {
     @Test(dataProvider = "formatProvider")
     public void testTagsInOperations(String type) {
         ValidatableResponse vr = callEndpoint(type);
-        vr.body("paths.'/availability'.get.tags", containsInAnyOrder("Get Flights", "Availability"));
+        vr.body("paths.'/modelReader/availability'.get.tags", contains("Availability"));
         vr.body("paths.'/modelReader/bookings'.get.tags", containsInAnyOrder("bookings"));
     }
 
@@ -300,7 +302,7 @@ public class ModelReaderAppTest extends AppTestBase {
     public void testContentInAPIResponse(String type) {
         ValidatableResponse vr = callEndpoint(type);
 
-        String content1 = "paths.'/availability'.get.responses.'200'.content.'application/json'";
+        String content1 = "paths.'/modelReader/availability'.get.responses.'200'.content.'application/json'";
         vr.body(content1, notNullValue());
         vr.body(content1 + ".schema.type", equalTo("array"));
         vr.body(content1 + ".schema.items.$ref", equalTo("#/components/schemas/Flight"));

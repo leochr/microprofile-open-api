@@ -385,7 +385,7 @@ public class AirlinesAppTest extends AppTestBase {
         vr.body(availabilityParameters + ".findAll { it.name == 'numberOfAdults' }.schema.minimum", both(hasSize(1)).and(contains(0)));
         vr.body(availabilityParameters + ".findAll { it.name == 'numberOfChildren' }.schema.minimum", both(hasSize(1)).and(contains(0)));
         
-        vr.body(availabilityParameters + ".findAll { it.$ref == '#/components/parameters/departureDate'}", notNullValue());
+        vr.body(availabilityParameters + ".findAll { it.$ref == '#/components/parameters/departureDate'}", hasSize(1));
     }
 
     @RunAsClient

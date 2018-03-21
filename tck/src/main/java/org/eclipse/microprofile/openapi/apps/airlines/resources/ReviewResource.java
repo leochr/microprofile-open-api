@@ -279,6 +279,7 @@ public class ReviewResource {
             in = ParameterIn.PATH,
             content = @Content(
                 examples = @ExampleObject(
+                        name = "airlines",
                     value = "Acme Air")))
         @PathParam("airline") String airlines){
 
@@ -373,7 +374,8 @@ public class ReviewResource {
                         )
                     )
                 )
-            )
+            ),
+            @Callback(ref="#/components/callbacks/GetBookings")
         }
     )
     @Tag(ref="Reviews")
@@ -405,7 +407,8 @@ public class ReviewResource {
                                     parameters = @LinkParameter(
                                             name = "reviewId",
                                             expression = "$request.path.id")
-                            )
+                            ),
+                    @Link(ref="#/components/links/UserName")
             }
             )
     @RequestBody(
